@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 
@@ -72,24 +72,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'internet.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hacker',
-        'USER': 'postgres',
-        'PASSWORD': 'mypassword',
-        'HOST': 'localhost',
-        'PORT': 5431
+        'NAME': os.getenv('PGSQL_NAME', 'hacker'),
+        'USER': os.getenv('PGSQL_USER', 'postgres'),
+        'PASSWORD': os.getenv('PGSQL_PASSWORD', 'mypassword'),
+        'HOST': os.getenv('PGSQL_HOST', 'localhost'),
+        'PORT': os.getenv('PGSQL_PORT', 5432)
     }
 
 }

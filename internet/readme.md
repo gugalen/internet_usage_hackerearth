@@ -9,7 +9,11 @@ pip install -r requirement.txt
 - Install postgres(version 14) and start running postgres server locally
 - Export below env variable in your shell which has postgres config and modify the values within "{}" as per your DB setup
 ```
-export DATABASE_URL=postgres://{USERNAME}:{PASSWORD}@127.0.0.1:{PORT}/{DATABASE}
+export PGSQL_NAME={DATABASE_NAME}
+export PGSQL_USER={USERNAME}
+export PGSQL_PASSWORD={PASSWORD}
+export PGSQL_HOST=localhost
+export PGSQL_PORT=5432
 ```
 ## Run Migration
 ```

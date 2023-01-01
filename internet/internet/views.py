@@ -78,7 +78,6 @@ def top_users_by_internet_usage(request):
             new_date = timezone.now()
         else:
             new_date = datetime.datetime.strptime(date, "%d%m%Y")
-            # TODO: if date format is incorrect handle it
             now = datetime.datetime.now()
             if new_date > now:
                 return JsonResponse({'ok': False, 'error': {'message': 'Invalid date'}}, status=400)
