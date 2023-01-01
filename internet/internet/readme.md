@@ -15,6 +15,10 @@ export DATABASE_URL=postgres://{USERNAME}:{PASSWORD}@127.0.0.1:{PORT}/{DATABASE}
 ```
 python manage.py migrate
 ```
+## Run Script to Ingest Data
+```
+python manage.py migrate_user_data  
+```
 ## Run Server
 To run Django server locally, run below command:
 ```

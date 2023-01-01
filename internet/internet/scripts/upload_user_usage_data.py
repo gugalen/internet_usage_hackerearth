@@ -12,10 +12,11 @@ def readCsv():
         data = list(reader)
         return data
 
-def insertData(data:list):
+
+def insertData(data: list):
     usage_list = []
     for row in data:
-        usage = ()
+        usage = UsageData()
         usage.username = row['username']
         usage.mac_address = row['mac_address']
         usage.start_time = row['start_time']
@@ -23,7 +24,8 @@ def insertData(data:list):
         usage.upload = row['upload']
         usage.download = row['download']
         usage_list.append(usage)
-    UsageData.objects.bulk_create(usage_list)
+    UsageData.objects.bulk_create(usage_list,
+                                  ignore_conflicts=True)
 
 
 def run():

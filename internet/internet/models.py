@@ -9,3 +9,5 @@ class UsageData(models.Model):
     upload = models.DecimalField(max_digits=12, decimal_places=2)
     download = models.DecimalField(max_digits=12, decimal_places=2)
 
+    class Meta:
+        unique_together = ['username', 'mac_address', 'start_time']
