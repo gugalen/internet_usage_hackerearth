@@ -15,7 +15,7 @@ def readCsv():
 def insertData(data:list):
     usage_list = []
     for row in data:
-        usage = UsageData()
+        usage = ()
         usage.username = row['username']
         usage.mac_address = row['mac_address']
         usage.start_time = row['start_time']

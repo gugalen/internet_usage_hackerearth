@@ -1,14 +1,13 @@
 from django.db.models import Sum
 from django.http.response import JsonResponse
 from internet.models import UsageData
-from internet.serializers import DataSerializer, MyAggSerializer
+from internet.serializers import DataSerializer
 from django.utils import timezone
 from datetime import timedelta, datetime
 import datetime
 from django.db import connection
 
 
-# @csrf_exempt
 def dataApi(request):
     dataset = UsageData.objects.all()
     data_serializer = DataSerializer(dataset, many=True)
@@ -93,35 +92,75 @@ def top_users_by_internet_usage(request):
         SUM(CASE WHEN start_time <= '{new_date}'::timestamp and start_time >= ('{new_date}'::timestamp - interval '30 days') THEN usage_time END) as usage_time_30days
         FROM internet_usagedata
         GROUP BY username
-        ORDER BY usage_time_1day DESC NULLS LAST limit {limit} offset {limit * (page - 1)};
+        ORDER BY usage_time_30days DESC NULLS LAST limit {limit} offset {limit * (page - 1)};
         '''
 
         cursor = connection.cursor()
         cursor.execute(sql_query)
         res = cursor.fetchall()
 
+        all_empty = True
+
+        for r in res:
+            if not (r[1] is None and r[2] is None and r[3] is None):
+                all_empty = False
+                break
+
+        if all_empty:
+            return JsonResponse({'ok': True, 'data': []}, status=422)
+
         new_res = []
-        print(res)
         for r in res:
             dict = {}
             dict["username"] = r[0]
-            new_res.append(dict)
-            one_day_duration_str = r[1]
-            one_day_hours, remainder = divmod(one_day_duration_str.total_seconds(), 3600)
-            one_day_minutes, seconds = divmod(remainder, 60)
-            one_day_formatted_duration = f"{int(one_day_hours)}h{int(one_day_minutes)}m"
-            dict["lastDayUsage"] = one_day_formatted_duration
-            seven_day_duration_str = r[2]
-            seven_day_hours, remainder = divmod(seven_day_duration_str.total_seconds(), 3600)
-            seven_day_minutes, seconds = divmod(remainder, 60)
-            seven_day_formatted_duration = f"{int(seven_day_hours)}h{int(seven_day_minutes)}m"
-            dict["sevenDayUsage"] = seven_day_formatted_duration
-            thirty_day_duration_str = r[3]
-            thirty_day_hours, remainder = divmod(thirty_day_duration_str.total_seconds(), 3600)
-            thirty_day_minutes, seconds = divmod(remainder, 60)
-            thirty_day_formatted_duration = f"{int(thirty_day_hours)}h{int(thirty_day_minutes)}m"
-            dict["thirtyDayUsage"] = thirty_day_formatted_duration
+            if r[1]:
+                one_day_duration_str = r[1]
+                one_day_hours, remainder = divmod(one_day_duration_str.total_seconds(), 3600)
+                one_day_minutes, seconds = divmod(remainder, 60)
+                one_day_formatted_duration = f"{int(one_day_hours)}h{int(one_day_minutes)}m"
+                dict["lastDayUsage"] = one_day_formatted_duration
 
-        return JsonResponse(new_res, safe=False)
+            if r[2]:
+                seven_day_duration_str = r[2]
+                seven_day_hours, remainder = divmod(seven_day_duration_str.total_seconds(), 3600)
+                seven_day_minutes, seconds = divmod(remainder, 60)
+                seven_day_formatted_duration = f"{int(seven_day_hours)}h{int(seven_day_minutes)}m"
+                dict["sevenDayUsage"] = seven_day_formatted_duration
+
+            if r[3]:
+                thirty_day_duration_str = r[3]
+                thirty_day_hours, remainder = divmod(thirty_day_duration_str.total_seconds(), 3600)
+                thirty_day_minutes, seconds = divmod(remainder, 60)
+                thirty_day_formatted_duration = f"{int(thirty_day_hours)}h{int(thirty_day_minutes)}m"
+                dict["thirtyDayUsage"] = thirty_day_formatted_duration
+            new_res.append(dict)
+
+        sql_count_query = f'''
+                SELECT 
+                SUM(CASE WHEN start_time <= '{new_date}'::timestamp and start_time >= ('{new_date}'::timestamp - interval '1 day') THEN usage_time END) as usage_time_1day,
+                SUM(CASE WHEN start_time <= '{new_date}'::timestamp and start_time >= ('{new_date}'::timestamp - interval '7 days') THEN usage_time END) as usage_time_7days,
+                SUM(CASE WHEN start_time <= '{new_date}'::timestamp and start_time >= ('{new_date}'::timestamp - interval '30 days') THEN usage_time END) as usage_time_30days
+                FROM internet_usagedata
+                GROUP BY username;
+                '''
+
+        cursor = connection.cursor()
+        cursor.execute(sql_count_query)
+        count_res = cursor.fetchall()
+        total_recs = len(count_res)
+
+        total_pages = 1 if total_recs <= limit else round(total_recs / limit)
+
+        if page > total_pages:
+            return JsonResponse({'ok': True, 'data': []}, status=422)
+
+        final_res = {
+            "ok": True,
+            "data": [] if len(res) == 0 else new_res,
+            "page": page,
+            "pageSize": limit,
+            "totalPages": total_pages
+        }
+        return JsonResponse(final_res, safe=False)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': {'message': e}}, status=500)

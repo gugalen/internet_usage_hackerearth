@@ -9,8 +9,3 @@ class UsageData(models.Model):
     upload = models.DecimalField(max_digits=12, decimal_places=2)
     download = models.DecimalField(max_digits=12, decimal_places=2)
 
-
-class AggSerializer(models.Model):
-    time = models.DurationField()
-    upload = models.DecimalField(max_digits=12, decimal_places=2)
-    download = models.DecimalField(max_digits=12, decimal_places=2)
