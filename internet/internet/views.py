@@ -34,6 +34,7 @@ def userApi(request):
         last_twenty_four_hours_usage = UsageData.objects.filter(username=username,
                                                                 start_time__gte=timezone.now() - timedelta(hours=24)) \
             .values('username').annotate(upload=Sum("upload"), download=Sum("download"), time=Sum("usage_time"))
+
         combined_usage = last_hour_usage.union(last_six_hours_usage, last_twenty_four_hours_usage)
 
         usage = combined_usage.values('username', 'time', 'upload', 'download')
